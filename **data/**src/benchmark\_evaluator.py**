@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-📊 LLM & RAG Benchmark Evaluator
+LLM & RAG Benchmark Evaluator
 ==================================
 Role: AI Translator / Product Owner Data & IA
 Purpose: Evaluate and benchmark LLMs (GPT-4o, Claude 3.5 Sonnet, Llama 3.1 70B)
@@ -194,7 +194,7 @@ def run_benchmark(dataset: List[Dict[str, Any]], models: List[str]) -> Dict[str,
 def print_summary_table(results: Dict[str, Any]) -> None:
     """Formats and prints a clean markdown summary table for Product Owners."""
     print("\n" + "=" * 90)
-    print("📊 BENCHMARK SUMMARY REPORT (PRODUCT OWNER & ARCHITECTURE SYNTHESIS)")
+    print(" BENCHMARK SUMMARY REPORT (PRODUCT OWNER & ARCHITECTURE SYNTHESIS)")
     print("=" * 90)
     
     header = f"| {'Model':<16} | {'Recall (%)':<10} | {'ROUGE-L':<8} | {'Latency (p95)':<13} | {'Cost / 1k Docs':<14} | {'Compliance':<10} |"
@@ -220,9 +220,9 @@ def main():
     if args.dataset and Path(args.dataset).exists():
         with open(args.dataset, "r", encoding="utf-8") as f:
             dataset = json.load(f)
-        print(f"✅ Loaded dataset from {args.dataset}")
+        print(f" Loaded dataset from {args.dataset}")
     else:
-        print("ℹ️ No dataset file provided. Using default Golden Dataset sample (3 reference contracts).")
+        print(" No dataset file provided. Using default Golden Dataset sample (3 reference contracts).")
         dataset = DEFAULT_GOLDEN_DATASET
 
     # Execute Benchmark
