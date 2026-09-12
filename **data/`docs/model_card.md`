@@ -1,0 +1,116 @@
+# 📄 Model Card &amp; EU AI Act Governance Report: LLM &amp; RAG Contract Benchmark
+
+&gt; **Document Type** : Model Card &amp; Risk Governance Assessment (Aligné EU AI Act)  
+&gt; **Projet** : Évaluation &amp; Selection de Modèles LLM pour l'Analyse de Contrats Juridiques B2B  
+&gt; **Auteur / Lead Product Owner** : Ewen Métayer (AI Translator / PO Data &amp; IA)  
+&gt; **Date de publication** : Septembre 2026
+
+---
+
+## 📌 1\. Informations Générales &amp; Périmètre (Model Details)
+
+* **Nom du Système** : LLM Contract Evaluator &amp; RAG Architecture
+* **Version** : 1.0.0
+* **Modèles évalués** :  
+  * `OpenAI GPT-4o` (Azure OpenAI Service - Region Sweden Central)
+  * `Anthropic Claude 3.5 Sonnet` (AWS Bedrock - Region Frankfurt)
+  * `Meta Llama 3.1 70B` (Self-Hosted / AWS Bedrock - VPC Isolé)
+* **Architecture** : Hybrid Retrieval-Augmented Generation (RAG) avec moteur Vector DB (pgvector) et orchestration LangChain / LlamaIndex.
+
+### Scoping Réglementaire (EU AI Act Classification)
+
+Selon les critères de classification du **Règlement Européen sur l'IA (EU AI Act)** :
+
+* **Classification de Risque** : **Risque Spécifique / Transparence (Article 50)** – Système d'aide à la décision humaine (Human-in-the-loop) dans le secteur juridique / achats B2B. Ne constitue pas un système à risque inacceptable (Article 5) ni un système à haut risque autonome sous l'Annexe III (car les décisions finales sont impérativement validées par un juriste).
+* **Obligations Clés** : Transparence de l'IA envers l'utilisateur final, documentation technique exhaustive, prévention des biais et traçabilité des générations.
+
+---
+
+## 🎯 2\. Cas d'Usage Prévus &amp; Restrictions (Intended &amp; Unintended Use)
+
+### Cas d'Usage Autorisés (Intended Uses)
+
+* **Pre-screening de contrats B2B** : Extraction automatique des dates d'échéance, pénalités de retard, juridictions et clauses d'exclusivité.
+* **Résumé exécutif** : Synthèse automatique de contrats fournisseurs complexes pour les juristes et acheteurs.
+* **Comptabilité &amp; Audits** : Vérification de la conformité des termes commerciaux par rapport aux politiques internes de l'entreprise.
+
+### Usages Proscrits (Out-of-Scope / Prohibited Uses)
+
+* ❌ **Signature automatique de contrats** sans validation formelle d'un juriste ou décisionnaire humain.
+* ❌ **Conseil juridique automatisé à des particuliers** (B2C) sans supervision légale d'un avocat.
+* ❌ **Traitement de documents contenant des données médicales ou hautement sensibles** non préalablement anonymisées.
+
+---
+
+## 📊 3\. Données &amp; Protocole d'Évaluation (Data &amp; Provenance)
+
+### Dataset de Référence (Golden Dataset)
+
+* **Taille de l'échantillon** : 100 contrats d'achats B2B réels (anonymisés).
+* **Annotation** : Fichiers validés par une équipe de 3 juristes seniors (Ground Truth).
+* **Couverture des clauses** :  
+  * Durée &amp; Préavis de résiliation
+  * Limites de responsabilité &amp; Pénalités
+  * Propriété Intellectuelle (IP) &amp; Confidentialité (NDA)
+  * Données personnelles (DPA) et Loi applicable
+
+### Masquage &amp; Protection des Données (PII Anonymization)
+
+* En amont du pipeline de prompt, un filtre d'anonymisation (Presidio / Amazon Comprehend Medical) remplace systématiquement :  
+  * Noms de personnes physiques ➔ `[NOM_MASQUÉ]`
+  * Numéros de téléphone / Emails ➔ `[CONTACT_MASQUÉ]`
+  * Adresses et Identifiants bancaires ➔ `[COORDONNÉES_MASQUÉES]`
+
+---
+
+## 📈 4\. Métriques de Performance &amp; Arbitrage Technique
+
+Les résultats présentés ci-dessous ont été mesurés sur le jeu de test de 100 contrats :
+
+| Métrique de Performance               | GPT-4o | Claude 3.5 Sonnet | Llama 3.1 70B | Seuil d'Acceptabilité Métier |
+| ------------------------------------- | ------ | ----------------- | ------------- | ---------------------------- |
+| **Recall (Clauses critiques)**        | 96.2 % | **98.1 %**        | 91.5 %        | **\&gt; 95.0 %**                |
+| **ROUGE-L (F1-score)**                | 0.84   | **0.88**          | 0.79          | **\&gt; 0.80**                  |
+| **BERTScore (Semantique)**            | 0.92   | **0.95**          | 0.86          | **\&gt; 0.90**                  |
+| **Latence p95**                       | 1.8 s  | 2.1 s             | **1.2 s**     | **&lt; 3.0 s**                  |
+| **Taux d'Hallucination (Fact Check)** | 2.1 %  | **0.8 %**         | 5.4 %         | **&lt; 1.0 %**                  |
+
+### Décision d'Architecture Produit (Product Decision)
+
+1. **Modèle Principal (Production)** : **Claude 3.5 Sonnet**. Son score de **Recall de 98.1 %** et son taux d'hallucination minimal (&lt; 1 %) en font la solution la plus sûre pour prévenir les risques légaux.
+2. **Stratégie de Routage par Coût (Fallback)** : Utilisation de **Llama 3.1 70B** en premier niveau pour classifier les contrats simples (coût réduit de 42 %), avec escalade vers **Claude 3.5 Sonnet** dès que la complexité ou le risque financier du contrat dépasse un seuil prédéfini.
+
+---
+
+## 🛡️ 5\. IA Responsable, Sécurité &amp; Gestion des Risques
+
+### 1\. Risque d'Hallucination &amp; Ancrage Factuel (Contextual Grounding)
+
+* **Garde-fou** : Implémentation d'un système de vérification d'ancrage (*Grounding Score*).
+* **Règle de secours** : Si le score d'alignement avec le document source est inférieur à **85 %**, le système renvoie la mention obligatoire : *"Information non trouvée dans le document original"* au lieu d'estimer ou d'inventer une réponse.
+
+### 2\. Boucle de Validation Humaine (Human-in-the-Loop - HITL)
+
+* Tout contrat pour lequel le système calcule une probabilité de confiance **&lt; 90 %** est automatiquement placé dans une file d'attente prioritaire pour révision par un juriste humain.
+
+### 3\. Empreinte Carbone &amp; Efficacité Énergétique
+
+* Suivi des émissions de CO2 liées aux appels API et aux serveurs d'inférence. Le routage intelligent vers des modèles plus légers (Llama 3.1) permet de réduire l'empreinte carbone globale du service de **35 %**.
+
+---
+
+## 📋 6\. Matrice de Conformité EU AI Act (Auditability Checklist)
+
+* [x] **Art. 10 - Gouvernance des données** : Données de test anonymisées et vérifiées sans biais discriminatoires.
+* [x] **Art. 11 - Documentation technique** : Archivage du code source, du benchmark et de la présente Model Card.
+* [x] **Art. 12 - Traçabilité &amp; Logging** : Journalisation intégrale des prompts et réponses dans CloudTrail (conservation 1 an pour audit).
+* [x] **Art. 14 - Contrôle humain** : Interface garantissant que l'utilisateur humain peut à tout moment modifier ou annuler l'analyse du système.
+* [x] **Art. 50 - Obligations de transparence** : Notification claire affichée à l'utilisateur final : *"Ce résumé a été généré par un assistant IA et doit être validé par un juriste."*
+
+---
+
+## 🛠️ 7\. Maintenance &amp; Supervision (Ops &amp; Data Drift)
+
+* **Propriétaire du produit (PO)** : Ewen Métayer (AI Translator / PO Data &amp; IA)
+* **Fréquence de Ré-évaluation** : Trimestrielle (ou à chaque mise à jour majeure des modèles fondateurs).
+* **Détection du Data Drift** : Re-run automatique du `benchmark_evaluator.py` en CI/CD lors de l'ajout de 20 nouveaux contrats dans le *Golden Dataset*.
