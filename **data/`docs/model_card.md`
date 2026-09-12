@@ -1,4 +1,4 @@
-# 📄 Model Card &amp; EU AI Act Governance Report: LLM &amp; RAG Contract Benchmark
+# Model Card &amp; EU AI Act Governance Report: LLM &amp; RAG Contract Benchmark
 
 &gt; **Document Type** : Model Card &amp; Risk Governance Assessment (Aligné EU AI Act)  
 &gt; **Projet** : Évaluation &amp; Selection de Modèles LLM pour l'Analyse de Contrats Juridiques B2B  
@@ -7,7 +7,7 @@
 
 ---
 
-## 📌 1\. Informations Générales &amp; Périmètre (Model Details)
+## 1\. Informations Générales &amp; Périmètre (Model Details)
 
 * **Nom du Système** : LLM Contract Evaluator &amp; RAG Architecture
 * **Version** : 1.0.0
@@ -26,7 +26,7 @@ Selon les critères de classification du **Règlement Européen sur l'IA (EU AI 
 
 ---
 
-## 🎯 2\. Cas d'Usage Prévus &amp; Restrictions (Intended &amp; Unintended Use)
+## 2\. Cas d'Usage Prévus &amp; Restrictions (Intended &amp; Unintended Use)
 
 ### Cas d'Usage Autorisés (Intended Uses)
 
@@ -42,7 +42,7 @@ Selon les critères de classification du **Règlement Européen sur l'IA (EU AI 
 
 ---
 
-## 📊 3\. Données &amp; Protocole d'Évaluation (Data &amp; Provenance)
+## 3\. Données &amp; Protocole d'Évaluation (Data &amp; Provenance)
 
 ### Dataset de Référence (Golden Dataset)
 
@@ -63,7 +63,7 @@ Selon les critères de classification du **Règlement Européen sur l'IA (EU AI 
 
 ---
 
-## 📈 4\. Métriques de Performance &amp; Arbitrage Technique
+## 4\. Métriques de Performance &amp; Arbitrage Technique
 
 Les résultats présentés ci-dessous ont été mesurés sur le jeu de test de 100 contrats :
 
@@ -82,7 +82,7 @@ Les résultats présentés ci-dessous ont été mesurés sur le jeu de test de 1
 
 ---
 
-## 🛡️ 5\. IA Responsable, Sécurité &amp; Gestion des Risques
+## 5\. IA Responsable, Sécurité &amp; Gestion des Risques
 
 ### 1\. Risque d'Hallucination &amp; Ancrage Factuel (Contextual Grounding)
 
@@ -99,7 +99,7 @@ Les résultats présentés ci-dessous ont été mesurés sur le jeu de test de 1
 
 ---
 
-## 📋 6\. Matrice de Conformité EU AI Act (Auditability Checklist)
+## 6\. Matrice de Conformité EU AI Act (Auditability Checklist)
 
 * [x] **Art. 10 - Gouvernance des données** : Données de test anonymisées et vérifiées sans biais discriminatoires.
 * [x] **Art. 11 - Documentation technique** : Archivage du code source, du benchmark et de la présente Model Card.
@@ -109,7 +109,7 @@ Les résultats présentés ci-dessous ont été mesurés sur le jeu de test de 1
 
 ---
 
-## 🛠️ 7\. Maintenance &amp; Supervision (Ops &amp; Data Drift)
+## 7\. Maintenance &amp; Supervision (Ops &amp; Data Drift)
 
 * **Propriétaire du produit (PO)** : Ewen Métayer (AI Translator / PO Data &amp; IA)
 * **Fréquence de Ré-évaluation** : Trimestrielle (ou à chaque mise à jour majeure des modèles fondateurs).
