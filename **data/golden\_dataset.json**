@@ -1,0 +1,23 @@
+[
+  {
+    "id": "doc_001",
+    "contract_type": "SLA & Cloud Services",
+    "reference_summary": "Contrat d'hébergement SaaS de 36 mois avec garantie de disponibilité à 99.9%. Pénalité de 5% du montant mensuel par tranche de 0.1% sous le SLA.",
+    "expected_clauses": ["36 mois", "99.9%", "pénalité", "5%", "SaaS"],
+    "max_acceptable_latency_sec": 3.0
+  },
+  {
+    "id": "doc_002",
+    "contract_type": "NDA & Propriété Intellectuelle",
+    "reference_summary": "Accord de confidentialité réciproque d'une durée de 5 ans. Juridiction compétente : Tribunal de Commerce de Paris. Clause de non-sollicitation de 12 mois.",
+    "expected_clauses": ["réciproque", "5 ans", "Paris", "non-sollicitation", "12 mois"],
+    "max_acceptable_latency_sec": 3.0
+  },
+  {
+    "id": "doc_003",
+    "contract_type": "Prestation de Services IT",
+    "reference_summary": "Contrat d'assistance technique en régie plafonné à 150 jours/homme. Préavis de résiliation de 30 jours. Clause d'indexation Syntec annuelle.",
+    "expected_clauses": ["régie", "150 jours", "30 jours", "Syntec", "résiliation"],
+    "max_acceptable_latency_sec": 3.0
+  }
+]
