@@ -1,11 +1,11 @@
-# 📊 LLM &amp; RAG Benchmark: Cadrage, Arbitrage Métier et Évaluation de Performances (GPT-4o vs Claude 3.5 Sonnet vs Llama 3.1)
+# LLM &amp; RAG Benchmark: Cadrage, Arbitrage Métier et Évaluation de Performances (GPT-4o vs Claude 3.5 Sonnet vs Llama 3.1)
 
 &gt; **Role &amp; Impact** : Projet de cadrage et de benchmark technique/métier réalisé par un **AI Translator / Product Owner Data &amp; IA**.  
 &gt; **Objectif** : Évaluer et comparer trois fondations de modèles (propriétaires et open-source) sur un cas d'usage d'extraction d'informations et de résumé de contrats juridiques B2B, afin de guider le choix d'architecture pour un comité d'investissement.
 
 ---
 
-## 📌 1\. Context &amp; Business Case
+##1\. Context &amp; Business Case
 
 Les équipes juridiques et achats traitent chaque mois plus de 500 contrats fournisseurs complexes (PDFs non structurés). Le traitement manuel génère des goulots d'étranglement, une latence moyenne de 48 heures par revue et des risques d'omission de clauses critiques (pénalités, renouvellements tacites).
 
@@ -17,7 +17,7 @@ Les équipes juridiques et achats traitent chaque mois plus de 500 contrats four
 
 ---
 
-## 🏗️ 2\. Architecture &amp; Grille d'Arbitrage
+## 2\. Architecture &amp; Grille d'Arbitrage
 
 L'architecture retenue est un système **Retrieval-Augmented Generation (RAG)** hybride couplé à une évaluation automatisée sur un *Golden Dataset*.
 
@@ -41,7 +41,7 @@ L'architecture retenue est un système **Retrieval-Augmented Generation (RAG)** 
 
 ---
 
-## 📈 3\. Évaluation &amp; Résultats (Golden Dataset Benchmark)
+## 3\. Évaluation &amp; Résultats (Golden Dataset Benchmark)
 
 L'évaluation a été réalisée sur un **Golden Dataset de 100 contrats de référence** annotés et validés par des experts métier.
 
@@ -60,7 +60,7 @@ L'évaluation a été réalisée sur un **Golden Dataset de 100 contrats de réf
 
 ---
 
-## 🛡️ 4\. IA Responsable, Sécurité &amp; Gouvernance
+## 4\. IA Responsable, Sécurité &amp; Gouvernance
 
 Aligné avec les exigences de l'**EU AI Act** et des dimensions AWS AI Responsable :
 
@@ -71,7 +71,7 @@ Aligné avec les exigences de l'**EU AI Act** et des dimensions AWS AI Responsab
 
 ---
 
-## 🚀 5\. Structure du Repository &amp; Guide d'Exécution
+## 5\. Structure du Repository &amp; Guide d'Exécution
 
 ### Structure des Fichiers
 
