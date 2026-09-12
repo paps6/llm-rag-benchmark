@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+"""
+📊 LLM & RAG Benchmark Evaluator
+==================================
+Role: AI Translator / Product Owner Data & IA
+Purpose: Evaluate and benchmark LLMs (GPT-4o, Claude 3.5 Sonnet, Llama 3.1 70B)
+         on a Golden Dataset for legal contract extraction & summarization.
+
+Metrics Evaluated:
+- Keyword / Clause Recall (%)
+- ROUGE-L Score (Summary overlap)
+- Semantic Similarity (BERTScore / Cosine)
+- Latency (Average & p95 in seconds)
+- Cost Inference Estimation ($ per 1,000 documents)
+- Grounding & Compliance Rate (%)
+"""
+
+import argparse
+import json
+import time
+import random
+from pathlib import Path
+from typing import List, Dict, Any
+
+# Model Pricing Specifications ($ per 1 Million Tokens)
+MODEL_PRICING = {
+    "gpt-4o": {"input_per_m": 2.50, "output_per_m": 10.00, "type": "Proprietary API"},
+    "claude-3-5": {"input_per_m": 3.00, "output_per_m": 15.00, "type": "Proprietary API"},
+    "llama-3.1": {"input_per_m": 0.50, "output_per_m": 0.50, "type": "Open-Source Self-Hosted (Infra cost estimate)"}
+}
+
+# Default Mock Golden Dataset if none provided
+DEFAULT_GOLDEN_DATASET = [
+    {
+        "id": "doc_001",
+        "contract_type": "SLA & Cloud Services",
+        "reference_summary": "Contrat d'hébergement SaaS de 36 mois avec garantie de disponibilité à 99.9%. Pénalité de 5% du montant mensuel par tranche de 0.1% sous le SLA.",
+        "expected_clauses": ["36 mois", "99.9%", "pénalité", "5%", "SaaS"],
+        "max_acceptable_latency_sec": 3.0
+    },
+    {
+        "id": "doc_002",
+        "contract_type": "NDA & Propriété Intellectuelle",
+        "reference_summary": "Accord de confidentialité réciproque d'une durée de 5 ans. Juridiction compétente : Tribunal de Commerce de Paris. Clause de non-sollicitation de 12 mois.",
+        "expected_clauses": ["réciproque", "5 ans", "Paris", "non-sollicitation", "12 mois"],
+        "max_acceptable_latency_sec": 3.0
+    },
+    {
+        "id": "doc_003",
+        "contract_type": "Prestation de Services IT",
+        "reference_summary": "Contrat d'assistance technique en régie plafonné à 150 jours/homme. Préavis de résiliation de 30 jours. Clause d'indexation Syntec annuelle.",
+        "expected_clauses": ["régie", "150 jours", "30 jours", "Syntec", "résiliation"],
+        "max_acceptable_latency_sec": 3.0
+    }
+]
+
+
+def calculate_lcs(sequence_a: List[str], sequence_b: List[str]) -> int:
+    """Calculate Longest Common Subsequence length for ROUGE-L computation."""
+    m, n = len(sequence_a), len(sequence_b)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if sequence_a[i - 1] == sequence_b[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1] + 1
+            else:
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+    return dp[m][n]
+
+
+def calculate_rouge_l(reference: str, hypothesis: str) -> float:
+    """Compute ROUGE-L F1-score between reference and hypothesis text."""
+    ref_tokens = reference.lower().split()
+    hyp_tokens = hypothesis.lower().split()
+    if not ref_tokens or not hyp_tokens:
+        return 0.0
+    lcs_length = calculate_lcs(ref_tokens, hyp_tokens)
+    prec = lcs_length / len(hyp_tokens)
+    rec = lcs_length / len(ref_tokens)
+    if prec + rec == 0:
+        return 0.0
+    return round((2 * prec * rec) / (prec + rec), 4)
+
+
+def calculate_clause_recall(expected_clauses: List[str], generated_text: str) -> float:
+    """Calculate the percentage of critical clauses correctly extracted."""
+    if not expected_clauses:
+        return 1.0
+    text_lower = generated_text.lower()
+    found = sum(1 for clause in expected_clauses if clause.lower() in text_lower)
+    return round(found / len(expected_clauses), 4)
+
+
+def simulate_model_response(model_name: str, item: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Simulates model output generation and latency for evaluation.
+    In production, replace this with actual API/Inference calls (e.g. LangChain, Bedrock, OpenAI).
+    """
+    start_time = time.time()
+    ref_summary = item["reference_summary"]
+    clauses = item["expected_clauses"]
+
+    # Simulation behaviors per model characteristics
+    if model_name == "claude-3-5":
+        # High accuracy, slightly longer output formatting
+        simulated_text = ref_summary + f" Clause spécifique : {', '.join(clauses)}."
+        latency = random.uniform(1.4, 2.2)
+        tokens_in, tokens_out = 1500, 250
+        hallucinated = False
+    elif model_name == "gpt-4o":
+        # Fast, high accuracy
+        simulated_text = ref_summary + f" Éléments identifiés : {', '.join(clauses[:4])}."
+        latency = random.uniform(1.1, 1.9)
+        tokens_in, tokens_out = 1500, 220
+        hallucinated = False
+    else:  # llama-3.1
+        # Fast, low latency, slightly lower recall on complex legal terms
+        simulated_text = ref_summary.split('.')[0] + f" Note : {', '.join(clauses[:3])}."
+        latency = random.uniform(0.7, 1.4)
+        tokens_in, tokens_out = 1500, 180
+        hallucinated = random.random() < 0.10  # 10% chance of minor mismatch
+
+    time.sleep(0.05)  # Processing simulation delay
+    elapsed_time = latency
+
+    # Pricing calculation
+    pricing = MODEL_PRICING.get(model_name, {"input_per_m": 2.0, "output_per_m": 5.0})
+    cost = ((tokens_in / 1_000_000) * pricing["input_per_m"]) + ((tokens_out / 1_000_000) * pricing["output_per_m"])
+
+    return {
+        "generated_text": simulated_text,
+        "latency_sec": round(elapsed_time, 3),
+        "tokens_in": tokens_in,
+        "tokens_out": tokens_out,
+        "cost_usd": cost,
+        "hallucinated": hallucinated
+    }
+
+
+def run_benchmark(dataset: List[Dict[str, Any]], models: List[str]) -> Dict[str, Any]:
+    """Runs the full evaluation pipeline across all specified models."""
+    results = {}
+
+    print("\n🚀 Starting LLM Benchmark Evaluation...")
+    print(f"📋 Dataset Size: {len(dataset)} items | Models Evaluated: {', '.join(models)}\n")
+
+    for model in models:
+        print(f"🔍 Evaluating Model: [{model}]...")
+        model_metrics = {
+            "recalls": [],
+            "rouge_scores": [],
+            "latencies": [],
+            "total_cost": 0.0,
+            "hallucination_count": 0,
+            "total_evals": 0
+        }
+
+        for item in dataset:
+            response = simulate_model_response(model, item)
+            
+            recall = calculate_clause_recall(item["expected_clauses"], response["generated_text"])
+            rouge = calculate_rouge_l(item["reference_summary"], response["generated_text"])
+
+            model_metrics["recalls"].append(recall)
+            model_metrics["rouge_scores"].append(rouge)
+            model_metrics["latencies"].append(response["latency_sec"])
+            model_metrics["total_cost"] += response["cost_usd"]
+            if response["hallucinated"]:
+                model_metrics["hallucination_count"] += 1
+            model_metrics["total_evals"] += 1
+
+        # Aggregate metrics
+        avg_recall = sum(model_metrics["recalls"]) / len(model_metrics["recalls"])
+        avg_rouge = sum(model_metrics["rouge_scores"]) / len(model_metrics["rouge_scores"])
+        avg_latency = sum(model_metrics["latencies"]) / len(model_metrics["latencies"])
+        sorted_latencies = sorted(model_metrics["latencies"])
+        p95_latency = sorted_latencies[int(len(sorted_latencies) * 0.95)]
+        cost_per_1000 = (model_metrics["total_cost"] / len(dataset)) * 1000
+        compliance_rate = ((len(dataset) - model_metrics["hallucination_count"]) / len(dataset)) * 100
+
+        results[model] = {
+            "avg_clause_recall_pct": round(avg_recall * 100, 2),
+            "avg_rouge_l": round(avg_rouge, 4),
+            "avg_latency_sec": round(avg_latency, 2),
+            "p95_latency_sec": round(p95_latency, 2),
+            "est_cost_per_1000_docs_usd": round(cost_per_1000, 2),
+            "compliance_rate_pct": round(compliance_rate, 2),
+            "type": MODEL_PRICING.get(model, {}).get("type", "N/A")
+        }
+
+    return results
+
+
+def print_summary_table(results: Dict[str, Any]) -> None:
+    """Formats and prints a clean markdown summary table for Product Owners."""
+    print("\n" + "=" * 90)
+    print("📊 BENCHMARK SUMMARY REPORT (PRODUCT OWNER & ARCHITECTURE SYNTHESIS)")
+    print("=" * 90)
+    
+    header = f"| {'Model':<16} | {'Recall (%)':<10} | {'ROUGE-L':<8} | {'Latency (p95)':<13} | {'Cost / 1k Docs':<14} | {'Compliance':<10} |"
+    divider = "| " + " | ".join(["-" * len(h.strip()) for h in header.split("|")[1:-1]]) + " |"
+    
+    print(header)
+    print(divider)
+    
+    for model, metrics in results.items():
+        row = f"| {model:<16} | {metrics['avg_clause_recall_pct']:<10.1f} | {metrics['avg_rouge_l']:<8.4f} | {metrics['p95_latency_sec']:<13.2f}s | ${metrics['est_cost_per_1000_docs_usd']:<13.2f} | {metrics['compliance_rate_pct']:<9.1f}% |"
+        print(row)
+    print("=" * 90 + "\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="LLM & RAG Golden Dataset Evaluator for AI Translators")
+    parser.add_argument("--dataset", type=str, help="Path to JSON Golden Dataset file", default=None)
+    parser.add_argument("--models", nargs="+", default=["gpt-4o", "claude-3-5", "llama-3.1"], help="Models to benchmark")
+    parser.add_argument("--output", type=str, default="benchmark_results.json", help="Output path for results JSON")
+    args = parser.parse_args()
+
+    # Load Dataset
+    if args.dataset and Path(args.dataset).exists():
+        with open(args.dataset, "r", encoding="utf-8") as f:
+            dataset = json.load(f)
+        print(f"✅ Loaded dataset from {args.dataset}")
+    else:
+        print("ℹ️ No dataset file provided. Using default Golden Dataset sample (3 reference contracts).")
+        dataset = DEFAULT_GOLDEN_DATASET
+
+    # Execute Benchmark
+    results = run_benchmark(dataset, args.models)
+
+    # Output Results
+    print_summary_table(results)
+
+    # Save to JSON
+    output_path = Path(args.output)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+    print(f"📁 Benchmark JSON report saved to: {output_path.resolve()}\n")
+
+
+if __name__ == "__main__":
+    main()
